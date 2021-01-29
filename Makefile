@@ -12,7 +12,7 @@ OBJS = v1718_lib.o vme_bridge.o V1742_lib.o X742CorrectionRoutines.o
 
 OBJS_CAENCOMM = X742CorrectionRoutines.o V1742_lib.o 
 
-BINS = acquire count acquire_CAENComm
+BINS = acquire acquire_CAENComm
 
 INCLUDE_DIR = .
 
@@ -22,9 +22,6 @@ all: $(BINS)
 
 acquire: $(OBJS) main_acquisition.o 
 	g++ -g -DLINUX -o acquire $(OBJS) -lncurses -lm -l CAENVME  -lCAENComm -lCAENDigitizer main_acquisition.o
-
-count: $(OBJS) simple_count.o
-	g++ -g -DLINUX -o count $(OBJS) -lncurses -lm -l CAENVME -lCAENComm -lCAENDigitizer simple_count.o
 
 acquire_CAENComm: $(OBJS_CAENCOMM) testDigitizer.o
 	g++ -g -DLINUX -o acquire_CAENComm $(OBJS_CAENCOMM) -lncurses -lm -l CAENVME -lCAENComm -lCAENDigitizer testDigitizer.o
@@ -37,9 +34,6 @@ main_acquisition.o: main_acquisition.c main_acquisition.h
 
 testDigitizer.o: testDigitizer.c
 	g++ $(COPTS) -c testDigitizer.c
-
-simple_count.o: simple_count.c
-	g++ $(COPTS) -c simple_count.c
 
 v1718_lib.o: v1718_lib.c v1718_lib.h 
 	g++ $(COPTS) -c v1718_lib.c
