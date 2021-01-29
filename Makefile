@@ -8,9 +8,9 @@
 # daq for the CAEN bridge v1718
 
 
-OBJS = adc265_lib.o adc792_lib.o tdc1190_lib.o tdcV488A_lib.o v1718_lib.o vme_bridge.o V513_lib.o V262_lib.o scaler560_lib.o V1742_lib.o V814_lib.o   X742CorrectionRoutines.o
+OBJS = v1718_lib.o vme_bridge.o V1742_lib.o X742CorrectionRoutines.o
 
-OBJS_CAENCOMM = V814_lib_CAENComm.o V513_lib_CAENComm.o V262_lib_CAENComm.o adc792_lib_CAENComm.o X742CorrectionRoutines.o V1742_lib.o 
+OBJS_CAENCOMM = X742CorrectionRoutines.o V1742_lib.o 
 
 BINS = acquire count acquire_CAENComm
 
@@ -41,47 +41,11 @@ testDigitizer.o: testDigitizer.c
 simple_count.o: simple_count.c
 	g++ $(COPTS) -c simple_count.c
 
-adc265_lib.o: adc265_lib.c adc265_lib.h
-	g++ $(COPTS) -c adc265_lib.c
-
-adc792_lib.o: adc792_lib.c adc792_lib.h 
-	g++ $(COPTS) -c adc792_lib.c
-
-scaler560_lib.o: scaler560_lib.c scaler560_lib.h 
-	g++ $(COPTS) -c scaler560_lib.c
-
-tdc1190_lib.o: tdc1190_lib.c tdc1190_lib.h 
-	g++ $(COPTS) -c tdc1190_lib.c
-
-tdcV488A_lib.o: tdcV488A_lib.c tdcV488A_lib.h 
-	g++ $(COPTS) -c tdcV488A_lib.c
-
 v1718_lib.o: v1718_lib.c v1718_lib.h 
 	g++ $(COPTS) -c v1718_lib.c
 
-V513_lib.o: V513_lib.cc V513.h 
-	g++ $(COPTS) -c V513_lib.cc
-
-V513_lib_CAENComm.o: V513_lib_CAENComm.c V513_CAENComm.h 
-	g++ $(COPTS) -c V513_lib_CAENComm.c
-
-V262_lib.o: V262_lib.cc V262.h 
-	g++ $(COPTS) -c V262_lib.cc
-
 V1742_lib.o: V1742_lib.c V1742_lib.h
 	g++ $(COPTS) -c  V1742_lib.c
-
-V814_lib.o: V814_lib.c V814_lib.h 
-	g++ $(COPTS) -c V814_lib.c
-
-V814_lib_CAENComm.o: V814_lib_CAENComm.c V814_lib_CAENComm.h 
-	g++ $(COPTS) -c V814_lib_CAENComm.c
-
-V262_lib_CAENComm.o: V262_lib_CAENComm.c V262_CAENComm.h 
-	g++ $(COPTS) -c V262_lib_CAENComm.c
-
-adc792_lib_CAENComm.o: adc792_lib_CAENComm.c adc792_lib_CAENComm.h 
-	g++ $(COPTS) -c adc792_lib_CAENComm.c
 
 vme_bridge.o: vme_bridge.c $(INCLUDE_DIR)/vme_bridge.h 	
 	g++ $(COPTS) -c vme_bridge.c	

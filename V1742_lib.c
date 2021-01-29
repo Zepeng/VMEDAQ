@@ -12,7 +12,7 @@
 
 #include "X742CorrectionRoutines.h"
 
-#define DEFAULT_CONFIG_FILE  "/home/cmsdaq/DAQ/VMEDAQ/V1742_config.txt"
+#define DEFAULT_CONFIG_FILE  "/home/nexo/work/DAQ/VMEDAQ/V1742_config.txt"
 
 #define MAX_CH  64          /* max. number of channels */
 #define MAX_SET 8           /* max. number of independent settings */
@@ -49,6 +49,7 @@ typedef struct WaveDumpConfig_t {
   int FPIOtype;
 
   CAEN_DGTZ_TriggerMode_t ExtTriggerMode;
+  CAEN_DGTZ_DRS4Frequency_t DRS4Frequency;
 
   uint8_t EnableMask;
 
@@ -167,6 +168,9 @@ int GetMoreBoardInfo(int handle)
     WDcfg.Nbit = 12; 
     if ((ret = CAEN_DGTZ_GetDRS4SamplingFrequency(handle, &freq)) != CAEN_DGTZ_Success) return CAEN_DGTZ_CommError;
     switch (freq) {
+    case CAEN_DGTZ_DRS4_750MHz:
+      WDcfg.Ts = (float) 1/0.75;
+      break;
     case CAEN_DGTZ_DRS4_1GHz:
       WDcfg.Ts = 1.0;
       break;
@@ -268,6 +272,7 @@ int ProgramDigitizer(int handle)
   }
   ret |= CAEN_DGTZ_SetRecordLength(handle, WDcfg.RecordLength);
   ret |= CAEN_DGTZ_SetPostTriggerSize(handle, (uint32_t) WDcfg.PostTrigger);
+  ret |= CAEN_DGTZ_SetDRS4SamplingFrequency(handle, WDcfg.DRS4Frequency);
   if(BoardInfo.FamilyCode != CAEN_DGTZ_XX742_FAMILY_CODE)
     ret |= CAEN_DGTZ_GetPostTriggerSize(handle, &WDcfg.PostTrigger);
   ret |= CAEN_DGTZ_SetIOLevel(handle, (CAEN_DGTZ_IOLevel_t) WDcfg.FPIOtype);
@@ -413,7 +418,7 @@ int writeEventToOutputBuffer_V1742(std::vector<unsigned int> *eventBuffer, CAEN_
   (*eventBuffer)[3]=EventInfo->EventCounter;
   (*eventBuffer)[4]=EventInfo->TriggerTimeTag;
 
-  //  printf("EVENT 1742 %d %d\n",EventInfo->EventCounter,EventInfo->TriggerTimeTag);
+  printf("EVENT 1742 %d %d %d\n",EventInfo->EventCounter,EventInfo->TriggerTimeTag, WDcfg.Nch);
   for (gr=0;gr<(WDcfg.Nch/8);gr++) {
     if (Event->GrPresent[gr]) {
       for(ch=0; ch<9; ch++) {
@@ -568,6 +573,15 @@ int ParseConfigFile(FILE *f_ini)
       read = fscanf(f_ini, "%d", &WDcfg.RecordLength);
       continue;
     }
+    
+    // Acquisition Frequency (X742 only)
+	if (strstr(str, "DRS4_FREQUENCY")!=NULL) {
+        int PrevDRS4Freq = WDcfg.DRS4Frequency;
+        int freq;
+        read = fscanf(f_ini, "%d", &freq);
+        WDcfg.DRS4Frequency = (CAEN_DGTZ_DRS4Frequency_t)freq;
+		continue;
+	}
 
     // Correction Level (mask)
     if (strstr(str, "CORRECTION_LEVEL")!=NULL) {
@@ -915,7 +929,7 @@ int init_V1742(int handle)
   }
   
   if( WDcfg.useCorrections == -1 ) { // use automatic corrections
-    ret = CAEN_DGTZ_LoadDRS4CorrectionData(handle,CAEN_DGTZ_DRS4_5GHz);
+    ret = CAEN_DGTZ_LoadDRS4CorrectionData(handle,WDcfg.DRS4Frequency);
     ret = CAEN_DGTZ_EnableDRS4Correction(handle);
   }
 
@@ -1103,22 +1117,22 @@ int read_V1742(int handle, unsigned int nevents, std::vector<V1742_Event_t>& eve
   BufferSize = 0;
   NumEvents = 0;
 
+  printf("nevents:%d Number of events%d\n", nevents, NumEvents);
   while (nevents != NumEvents)
     {
       ret = CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, v1742_buffer, &BufferSize);
       if (ret) {
-	
-	ErrCode = ERR_READOUT;
-	return ErrCode;
+          ErrCode = ERR_READOUT;
+          return ErrCode;
       }
       
       NumEvents = 0;
       if (BufferSize != 0) {
-	ret = CAEN_DGTZ_GetNumEvents(handle, v1742_buffer, BufferSize, &NumEvents);
-	if (ret) {
-	  ErrCode = ERR_READOUT;
-	  return ErrCode;
-	}
+          ret = CAEN_DGTZ_GetNumEvents(handle, v1742_buffer, BufferSize, &NumEvents);
+          if (ret) {
+              ErrCode = ERR_READOUT;
+              return ErrCode;
+          }
       }
     }
   
@@ -1166,8 +1180,8 @@ int read_V1742(int handle, unsigned int nevents, std::vector<V1742_Event_t>& eve
     else {
       ret = CAEN_DGTZ_DecodeEvent(handle, v1742_eventPtr, (void**)&Event742);
       if(WDcfg.useCorrections != -1) { // if manual corrections
-	ApplyDataCorrection( 0, WDcfg.useCorrections, CAEN_DGTZ_DRS4_5GHz, &(Event742->DataGroup[0]), &Table_gr0);
-	ApplyDataCorrection( 1, WDcfg.useCorrections, CAEN_DGTZ_DRS4_5GHz, &(Event742->DataGroup[1]), &Table_gr1);
+          ApplyDataCorrection( 0, WDcfg.useCorrections, WDcfg.DRS4Frequency, &(Event742->DataGroup[0]), &Table_gr0);
+          ApplyDataCorrection( 1, WDcfg.useCorrections, WDcfg.DRS4Frequency, &(Event742->DataGroup[1]), &Table_gr1);
 	  }
       events.push_back(V1742_Event_t(EventInfo,*Event742));
     }

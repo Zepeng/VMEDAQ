@@ -11,7 +11,6 @@
 #include "vme_bridge.h"
 
 #include "main_acquisition.h" 
-#include "scaler560_lib.h"
 #include "v1718_lib.h"
 
 #include <fstream>
@@ -70,40 +69,12 @@ int main(int argc, char** argv)
     return(1); 
   }
 
-  /* Scaler560 Initialisation */
-  if(SCALER560) {
-    printf("\n Initialization of SCALER 560\n");
-    status_init *= init_scaler560(BHandle);
-    if (status_init != 1) 
-      {
-	printf("Error in SCALER 560 initialization... STOP!\n");
-	return(1);
-      }
-  }
-  else {
-    printf("No SCALER module is present:: EXIT!\n");
-    return(1); 
-  }
-  
-
   printf("\nVME and modules initialization completed\n____ Start counting for %d msec _____\n",count_time);
   
   usleep(count_time*1e3);
 
   std::cout << "++++++ Final statitistics +++++++" << std::endl;
   vector<uint32_t> tmpscaD;
-  tmpscaD.clear();
-  tmpscaD = read_scaler560Vec(BHandle,daq_status); 
-  if(!tmpscaD.size())  cout<<" Warning:: Scaler Read :: "<< tmpscaD.size() << std::endl;
-  for (unsigned int i(0);i<tmpscaD.size();++i)
-    std::cout << "V560:: channel " << i << " has " << tmpscaD[i] << " counts" << std::endl;
-
-  if (daq_status != 1) 
-    {
-      printf("Error reading SCALER 560... STOP!\n");
-      return(1);
-    }
-
   /* VME deinitialization */
   bridge_deinit(BHandle);
 
