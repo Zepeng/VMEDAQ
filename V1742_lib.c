@@ -440,7 +440,6 @@ int writeEventToOutputBuffer_V1742(std::vector<float> *eventBuffer, CAEN_DGTZ_Ev
 	memcpy(&((*eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof(float));
 
 	//Beware the datas are float (because they are corrected...) but copying them here bit by bit. Should remember this for reading them out
-	printf("%f", Event->DataGroup[gr].DataChannel[ch][0]);
     memcpy(&((*eventBuffer)[start_ptr+2]), Event->DataGroup[gr].DataChannel[ch], Size * sizeof(float));
 
 	//Update event size and #channels
@@ -634,12 +633,6 @@ int ParseConfigFile(FILE *f_ini)
       continue;
     }
 
-    /* // GNUplot path */
-    /* if (strstr(str, "GNUPLOT_PATH")!=NULL) { */
-    /* 	read = fscanf(f_ini, "%s", WDcfg.GnuPlotPath); */
-    /* 	continue; */
-    /* } */
-
     // Post Trigger (percent of the acquisition window)
     if (strstr(str, "POST_TRIGGER")!=NULL) {
       read = fscanf(f_ini, "%d", &WDcfg.PostTrigger);
@@ -655,26 +648,6 @@ int ParseConfigFile(FILE *f_ini)
 	printf("%s: invalid option\n", str);
       continue;
     }
-
-    /* // Output file format (BINARY or ASCII) */
-    /* if (strstr(str, "OUTPUT_FILE_FORMAT")!=NULL) { */
-    /* 	read = fscanf(f_ini, "%s", str1); */
-    /* 	if (strcmp(str1, "BINARY")==0) */
-    /* 		WDcfg.OutFileFlags|= OFF_BINARY; */
-    /* 	else if (strcmp(str1, "ASCII")!=0) */
-    /* 		printf("%s: invalid output file format\n", str1); */
-    /* 	continue; */
-    /* } */
-
-    /* // Header into output file (YES or NO) */
-    /* if (strstr(str, "OUTPUT_FILE_HEADER")!=NULL) { */
-    /* 	read = fscanf(f_ini, "%s", str1); */
-    /* 	if (strcmp(str1, "YES")==0) */
-    /* 		WDcfg.OutFileFlags|= OFF_HEADER; */
-    /* 	else if (strcmp(str1, "NO")!=0) */
-    /* 		printf("%s: invalid option\n", str); */
-    /* 	continue; */
-    /* } */
 
     //    Interrupt settings (request interrupt when there are at least N events to read; 0=disable interrupts (polling mode))
     if (strstr(str, "USE_INTERRUPT")!=NULL) {
@@ -1139,31 +1112,6 @@ int read_V1742(int handle, unsigned int nevents, std::vector<V1742_Event_t>& eve
   
 
       
-  /* if (nevents != NumEvents) */
-  /*   { */
-  /*     ErrCode = ERR_MISMATCH_EVENTS; */
-  /*     return ErrCode; */
-  /*   } */
-  
-  /* Nb += BufferSize;  */
-  /* Ne += NumEvents; */
-  /* CurrentTime=get_time(); */
-  /* ElapsedTime=CurrentTime-PrevRateTime; */
-  
-  //      
-  
-  /* /\* nCycles++; *\/ */
-  /* if (Ne%10==0) { */
-  /* /\*   if (Nb == 0) *\/ */
-  /* /\*     if (ret == CAEN_DGTZ_Timeout) printf ("Timeout...\n"); else printf("No data...\n"); *\/ */
-
-  
-  /* /\*   nCycles= 0; *\/ */
-  /* /\*   Nb = 0; *\/ */
-  /* /\*   Ne = 0; *\/ */
-  /* 	PrevRateTime = CurrentTime; */
-  /* } */
-  
   /* Analyze data */
   for(i = 0; i < (int)NumEvents; i++) {
     /* Get one event from the readout buffer */

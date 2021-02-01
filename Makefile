@@ -16,7 +16,7 @@ BINS = acquire acquire_CAENComm
 
 INCLUDE_DIR = .
 
-COPTS = -g -Wall -DLINUX -fPIC -I$(INCLUDE_DIR)
+COPTS = -g -Wall -DLINUX -fPIC -I$(INCLUDE_DIR) -I/usr/include/hdf5/serial/ -lhdf5_cpp -lhdf5_serial 
 
 all: $(BINS)
 
