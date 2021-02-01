@@ -116,7 +116,7 @@ int main(int argc, char** argv)
   vector<uint32_t> my_scal_OD, my_scal_WD, tmpscaD;
   vector<V1742_Event_t> my_dig1742_OD;
   vector<int> my_header_OD;
-  vector<unsigned int> my_Dig_Event;
+  vector<float> my_Dig_Event;
 
   myOut.open(f_value,ios::out);
 

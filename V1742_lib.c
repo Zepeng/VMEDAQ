@@ -387,7 +387,7 @@ void SaveCorrectionTable(char *outputFileName, DataCorrection_t tb) {
   fclose(outputfile);
 }
 
-int writeEventToOutputBuffer_V1742(std::vector<unsigned int> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_X742_EVENT_t *Event)
+int writeEventToOutputBuffer_V1742(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_X742_EVENT_t *Event)
 {
   int gr,ch;
 
@@ -437,10 +437,11 @@ int writeEventToOutputBuffer_V1742(std::vector<unsigned int> *eventBuffer, CAEN_
 
 	//Allocating necessary space for this channel
 	eventBuffer->resize(eventBuffer->size() + 2 + Size);
-	memcpy(&((*eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof(unsigned int));
+	memcpy(&((*eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof(float));
 
 	//Beware the datas are float (because they are corrected...) but copying them here bit by bit. Should remember this for reading them out
-	memcpy(&((*eventBuffer)[start_ptr+2]), Event->DataGroup[gr].DataChannel[ch], Size * sizeof(unsigned int));
+	printf("%f", Event->DataGroup[gr].DataChannel[ch][0]);
+    memcpy(&((*eventBuffer)[start_ptr+2]), Event->DataGroup[gr].DataChannel[ch], Size * sizeof(float));
 
 	//Update event size and #channels
 	(*eventBuffer)[0]+=(Size+2);
