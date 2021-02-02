@@ -21,11 +21,11 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include "H5Cpp.h"
+#include "hdf5.h"
+#include "H5public.h"
 
 #define update_scaler 0
 using namespace std;
-using namespace H5;
 
 int main(int argc, char** argv)
 {
@@ -335,6 +335,10 @@ unsigned short writeFastEvent(vector<int> wriD, ofstream *Fouf)
     *Fouf << myD[dum] << " ";
   }
   *Fouf << "\n";
+
+  std::string fname = "test.h5";
+  hid_t file = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  //H5File file(fname, H5F_ACC_TRUNC);
   //Fouf->write((char *) &size,sizeof(int));
   //Fouf->write((char *) myD,wriD.size()*sizeof(int));
   return (status);

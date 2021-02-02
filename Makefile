@@ -21,10 +21,10 @@ COPTS = -g -Wall -DLINUX -fPIC -I$(INCLUDE_DIR) -I/usr/include/hdf5/serial/ -lhd
 all: $(BINS)
 
 acquire: $(OBJS) main_acquisition.o 
-	g++ -g -DLINUX -o acquire $(OBJS) -lncurses -lm -l CAENVME  -lCAENComm -lCAENDigitizer main_acquisition.o
+	g++ -g -DLINUX -o acquire $(OBJS) -lncurses -lm -lCAENVME  -lCAENComm -lCAENDigitizer main_acquisition.o -lhdf5
 
 acquire_CAENComm: $(OBJS_CAENCOMM) testDigitizer.o
-	g++ -g -DLINUX -o acquire_CAENComm $(OBJS_CAENCOMM) -lncurses -lm -l CAENVME -lCAENComm -lCAENDigitizer testDigitizer.o
+	g++ -g -DLINUX -o acquire_CAENComm $(OBJS_CAENCOMM) -lncurses -lm -lCAENVME -lCAENComm -lCAENDigitizer testDigitizer.o
 
 main_acquisition.o: main_acquisition.c main_acquisition.h
 	g++ $(COPTS) -c main_acquisition.c
