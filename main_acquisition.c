@@ -21,9 +21,11 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include "H5Cpp.h"
 
 #define update_scaler 0
 using namespace std;
+using namespace H5;
 
 int main(int argc, char** argv)
 {
