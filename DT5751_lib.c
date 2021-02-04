@@ -470,52 +470,13 @@ int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& e
       CAEN_DGTZ_EventInfo_t info; char *rawEvt = NULL;
       err = CAEN_DGTZ_GetEventInfo(handle,dt5751_buffer,bsize,i,&info,&rawEvt);
       err |= CAEN_DGTZ_DecodeEvent(handle, rawEvt, (void**)&Event16);
+      events.push_back(DT5751_Event_t(EventInfo,*Event16));
       for(int ich=0; ich < Nch; ich++)
           printf("Channel Size:%d", Event16->ChSize[ich]);
     }
   }
-  /*while (nevents != NumEvents)
-    {
-        CAEN_DGTZ_SendSWtrigger(handle);
-      ret = CAEN_DGTZ_ReadData(handle, CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT, dt5751_buffer, &BufferSize);
-      if (ret) {
-          ErrCode = ERR_READOUT;
-          return ErrCode;
-      }
-      
-      NumEvents = 0;
-      if (BufferSize != 0) {
-          ret = CAEN_DGTZ_GetNumEvents(handle, dt5751_buffer, BufferSize, &NumEvents);
-          if (ret) {
-              ErrCode = ERR_READOUT;
-              return ErrCode;
-          }
-      }
-  printf("nevents:%d Number of events%d\n", nevents, NumEvents);
-    }*/
-  
 
       
-  /* Analyze data */
-  for(int i = 0; i < (int)NumEvents; i++) {
-    /* Get one event from the readout buffer */
-    ret = CAEN_DGTZ_GetEventInfo(handle, dt5751_buffer, BufferSize, i, &EventInfo, &dt5751_eventPtr);
-    if (ret) {
-      ErrCode = ERR_EVENT_BUILD;
-      return ErrCode;
-    }
-    /* decode the event */
-    ret = CAEN_DGTZ_DecodeEvent(handle, dt5751_eventPtr, (void**)&Event16);
-    for(int ich=0; ich < Nch; ich++)
-        printf("Channel Size:%d", Event16->ChSize[ich]);
-    
-    if (ret) {
-      ErrCode = ERR_EVENT_BUILD;
-      return ErrCode;
-    }    
-  }  
-
-
   /* //Freeing DT5751 memory  after read */
   free(dt5751_buffer);
   //  free(dt5751_eventPtr);
