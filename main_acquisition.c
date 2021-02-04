@@ -103,9 +103,9 @@ int main(int argc, char** argv)
       printf("Error initializing V1742... STOP!\n");
       return(1);
   }
-  
+
   // connect to DT5751 
-  int dt5751; CAEN_DGTZ_ErrorCode err = CAEN_DGTZ_Success;
+  int dt5751; int err = CAEN_DGTZ_Success;
   err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &dt5751);
   if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
   if (err) { printf("Can't open DT5751!"); return 1; }
@@ -129,6 +129,38 @@ int main(int argc, char** argv)
   int cfgerr = ParseConfigFile(&cfg);
   if (cfgerr) return 1;
   else printf("Configuration of DT5751 completed.\n");
+
+  // global settings
+  uint16_t nEvtBLT=1; // number of events for each block transfer
+  err |= CAEN_DGTZ_Reset(dt5751);
+  err |= CAEN_DGTZ_SetRecordLength(dt5751,cfg.ns);
+  err |= CAEN_DGTZ_SetPostTriggerSize(dt5751,cfg.post);
+  err |= CAEN_DGTZ_SetMaxNumEventsBLT(dt5751,nEvtBLT);
+  err |= CAEN_DGTZ_SetAcquisitionMode(dt5751,CAEN_DGTZ_SW_CONTROLLED);
+  err |= CAEN_DGTZ_SetChannelEnableMask(dt5751,cfg.mask);
+  err |= CAEN_DGTZ_SetIOLevel(dt5751,(CAEN_DGTZ_IOLevel_t)cfg.exTrgSrc);
+  err |= CAEN_DGTZ_SetExtTriggerInputMode(dt5751,(CAEN_DGTZ_TriggerMode_t)cfg.exTrgMod);
+  err |= CAEN_DGTZ_SetSWTriggerMode(dt5751, (CAEN_DGTZ_TriggerMode_t)cfg.swTrgMod);
+  // set up trigger coincidence among channels
+  err |= CAEN_DGTZ_WriteRegister(dt5751,0x810c,cfg.trgMask);
+  // take the right most 4 bits in cfg.trgMask to set trg mode
+  err |= CAEN_DGTZ_SetChannelSelfTrigger(dt5751,(CAEN_DGTZ_TriggerMode_t)cfg.chTrgMod,cfg.trgMask & 0xf);
+  // configure individual channels
+  for (int ich=0; ich<Nch; ich++) {
+    err |= CAEN_DGTZ_SetChannelDCOffset(dt5751,ich,cfg.offset[ich]);
+    err |= CAEN_DGTZ_SetChannelTriggerThreshold(dt5751,ich,cfg.thr[ich]);
+    err |= CAEN_DGTZ_SetTriggerPolarity(dt5751,ich,(CAEN_DGTZ_TriggerPolarity_t)(cfg.polarity>>ich&1));
+  }
+  if (err) { printf("Board configure error: %d\n", err); 
+      return 1; }
+  sleep(1); // wait till baseline get stable
+
+  // allocate memory for data taking
+  char *buffer = NULL; uint32_t bytes;
+  err = CAEN_DGTZ_MallocReadoutBuffer(dt5751,&buffer,&bytes);
+  if (err) { printf("Can't allocate memory! Quit.\n"); 
+      return 1; }
+  else printf("\nAllocated %d kB of memory\n",bytes/1024);
 
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   
