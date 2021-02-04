@@ -1010,7 +1010,6 @@ int init_V1742(int handle)
     
 
 int read_V1742(int handle, unsigned int nevents, std::vector<V1742_Event_t>& events)
-//int read_V1742(int handle)
 {
   /* printf("Start read\n"); */
   CAEN_DGTZ_ErrorCode ret=CAEN_DGTZ_Success;
@@ -1064,30 +1063,6 @@ int read_V1742(int handle, unsigned int nevents, std::vector<V1742_Event_t>& eve
     return ErrCode;
   }
 
-  /* /\* //Wait for interrupt (if enabled) *\/ */
-  /* if (WDcfg.InterruptNumEvents > 0) { */
-  /* 	int32_t boardId; */
-  /* 	int VMEHandle; */
-  /* 	int InterruptMask = (1 << VME_INTERRUPT_LEVEL); */
-  
-  /* 	// Interrupt handling */
-  /* 	ret = CAEN_DGTZ_VMEIRQWait ((CAEN_DGTZ_ConnectionType) WDcfg.LinkType, WDcfg.LinkNum, WDcfg.ConetNode , InterruptMask, INTERRUPT_TIMEOUT, &VMEHandle); */
-  /* 	if (ret == CAEN_DGTZ_Timeout)  // No active interrupt requests */
-  /* 	  goto InterruptTimeout; */
-  /* 	if (ret != CAEN_DGTZ_Success)  { */
-  /* 	  ErrCode = ERR_INTERRUPT; */
-  /* 	  return ErrCode; */
-  /* 	} */
-  /* 	// Interrupt Ack */
-  /* 	ret = CAEN_DGTZ_VMEIACKCycle(VMEHandle, VME_INTERRUPT_LEVEL, &boardId); */
-  /* 	if ((ret != CAEN_DGTZ_Success) || (boardId != VME_INTERRUPT_STATUS_ID)) { */
-  /* 	  goto InterruptTimeout; */
-  /* 	} else { */
-  /* 	  if (INTERRUPT_MODE == CAEN_DGTZ_IRQ_MODE_ROAK) */
-  /* 	    ret = CAEN_DGTZ_RearmInterrupt(handle); */
-  /* 	} */
-  /* } */
-  
   BufferSize = 0;
   NumEvents = 0;
 
@@ -1142,21 +1117,11 @@ int read_V1742(int handle, unsigned int nevents, std::vector<V1742_Event_t>& eve
   }  
 
 
-      //      printf("%d %d\n",Nb,Ne);
-      //      sleep(1);
-  
   /* //Freeing V1742 memory  after read */
   free(v1742_buffer);
   //  free(v1742_eventPtr);
   delete(Event742);
 
-  // Test what happens when enable this. Do we need to malloc again? To be checked
-  /* ret = CAEN_DGTZ_FreeReadoutBuffer(&v1742_buffer); */
-  /* if (ret) { */
-  /*   ErrCode = ERR_FREE_BUFFER; */
-  /*   return ErrCode; */
-  /* } */
-  
   return 0;
   
 }

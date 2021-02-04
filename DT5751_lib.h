@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <vector>
+#include <CAENDigitizer.h>
 
 #ifndef Nch
 #define Nch (4) ///< total number of channels
@@ -46,9 +48,23 @@ typedef struct {
    uint16_t offset[Nch];///< 16-bit DC offset
 } RUN_DT5751_t;
 
-void SaveCurrentTime(RUN_DT5751_t *cfg); ///< Save OS time to \param cfg.
+void SaveCurrentTime(); ///< Save OS time to \param cfg.
 
-int ParseConfigFile(RUN_DT5751_t *cfg);
+typedef struct DT5751_Event_t
+{
+DT5751_Event_t(const CAEN_DGTZ_EventInfo_t& ei, const CAEN_DGTZ_UINT16_EVENT_t& e): 
+  eventInfo(ei), 
+    event(e) 
+  {
+  };
+  CAEN_DGTZ_EventInfo_t eventInfo;
+  CAEN_DGTZ_UINT16_EVENT_t event;
+} DT5751_Event_t;
+
+int init_DT5751(int handle);
+int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events);
+//int writeEventToOutputBuffer_DT5751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_X742_EVENT_t *Event);
+int stop_DT5751(int handle);
 
 #endif
 
