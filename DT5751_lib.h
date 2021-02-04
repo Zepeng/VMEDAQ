@@ -62,7 +62,7 @@ DT5751_Event_t(const CAEN_DGTZ_EventInfo_t& ei, const CAEN_DGTZ_UINT16_EVENT_t& 
 } DT5751_Event_t;
 
 int init_DT5751(int handle);
-int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events);
+int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events, bool swtrigger);
 //int writeEventToOutputBuffer_DT5751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_X742_EVENT_t *Event);
 int stop_DT5751(int handle);
 

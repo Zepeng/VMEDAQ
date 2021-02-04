@@ -110,7 +110,7 @@ int main(int argc, char** argv)
   if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
   status_init *=(1-init_DT5751(dt5751));
   vector<DT5751_Event_t> my_dig5751_OD;
-  daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD);
+  daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD, true);
   
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   

@@ -396,7 +396,7 @@ int init_DT5751(int handle)
   return 0;
 }
 
-int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events)
+int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events, bool swtrigger)
 {
   /* printf("Start read\n"); */
   CAEN_DGTZ_ErrorCode ret=CAEN_DGTZ_Success;
@@ -453,10 +453,8 @@ int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& e
   uint32_t bsize, fsize=0;
   while (nEvtTot<nNeeded ) {
     if (WDcfg.swTrgMod!=CAEN_DGTZ_TRGMODE_DISABLED)
-      for (i=0; i<1024; i++) {
-	CAEN_DGTZ_SendSWtrigger(handle);
-	nanosleep((const struct timespec[]){{0, 1000000}}, NULL);
-      }
+	if(swtrigger)
+        CAEN_DGTZ_SendSWtrigger(handle);
 
     // read data from board
     CAEN_DGTZ_ReadMode_t mode=CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT;
