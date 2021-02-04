@@ -118,6 +118,17 @@ int main(int argc, char** argv)
   printf("Connected to %s\n", board.ModelName);
   printf("ROC FPGA Release: %s\n", board.ROC_FirmwareRel);
   printf("AMC FPGA Release: %s\n", board.AMC_FirmwareRel);
+  
+  // calibrate board
+  err = CAEN_DGTZ_Calibrate(dt5751);
+  if (err) { printf("Can't calibrate board!\n"); 
+      return 1; }
+
+  // load configurations
+  RUN_DT5751_t cfg;
+  int cfgerr = ParseConfigFile(&cfg);
+  if (cfgerr) return 1;
+  else printf("Configuration of DT5751 completed.\n");
 
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   

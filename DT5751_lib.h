@@ -48,7 +48,7 @@ typedef struct {
 
 void SaveCurrentTime(RUN_DT5751_t *cfg); ///< Save OS time to \param cfg.
 
-int ParseConfigFile(FILE *fcfg, RUN_DT5751_t *cfg);
+int ParseConfigFile(RUN_DT5751_t *cfg);
 
 #endif
 

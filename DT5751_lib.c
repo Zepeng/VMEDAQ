@@ -4,6 +4,8 @@
 #include <CAENDigitizerType.h>
 #include "DT5751_lib.h"
 
+#define DEFAULT_CONFIG_FILE  "/home/nexo/work/DAQ/VMEDAQ/DT5751_config.txt"
+
 void SaveCurrentTime(RUN_DT5751_t *cfg)
 {
   struct timeval tv;
@@ -33,7 +35,7 @@ uint32_t GetDCOffset(int ch, int adc)
   return (uint32_t) value;
 }
 
-int ParseConfigFile(FILE *fcfg, RUN_DT5751_t *cfg) 
+int ParseConfigFile(RUN_DT5751_t *cfg) 
 {
   char setting[256], option[256];
   int i, ch=-1, parameter, post;
@@ -52,6 +54,7 @@ int ParseConfigFile(FILE *fcfg, RUN_DT5751_t *cfg)
   for (i=0; i<Nch; i++) { cfg->thr[i]=770; cfg->offset[i]=1000; }
 
   // parse cfg file
+  FILE *fcfg = fopen(DEFAULT_CONFIG_FILE,"r");
   while (!feof(fcfg)) {
     // read a word from the file
     int read = fscanf(fcfg, "%s", setting);
