@@ -18,6 +18,7 @@
 #include "main_acquisition.h" 
 #include "v1718_lib.h"
 #include "V1742_lib.h"
+#include "DT5751_lib.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
   }
   //CAENVME_SystemReset(BHandle);
   printf("Opened V1742 and initialized VME crate\n",ret);
-  /* Modules initialization */
+  // Modules initialization 
   status_init=1;
 
   printf("V1742 digitizer initialization\n");
@@ -102,6 +103,21 @@ int main(int argc, char** argv)
       printf("Error initializing V1742... STOP!\n");
       return(1);
   }
+  
+  // connect to DT5751 
+  int dt5751; CAEN_DGTZ_ErrorCode err = CAEN_DGTZ_Success;
+  err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &dt5751);
+  if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
+  if (err) { printf("Can't open DT5751!"); return 1; }
+
+  // get board info
+  CAEN_DGTZ_BoardInfo_t board;
+  err = CAEN_DGTZ_GetInfo(dt5751, &board);
+  if (err) { printf("Can't get board info!\n"); 
+      return 1; }
+  printf("Connected to %s\n", board.ModelName);
+  printf("ROC FPGA Release: %s\n", board.ROC_FirmwareRel);
+  printf("AMC FPGA Release: %s\n", board.AMC_FirmwareRel);
 
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   

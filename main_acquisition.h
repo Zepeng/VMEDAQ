@@ -4,6 +4,7 @@
 /* GENERAL SETTING  */
 #define V1718 1
 #define DIG1742 1
+#define DIG5751 1
 #define debug 1
 
 /* 1 modulo attivo*/
