@@ -16,4 +16,4 @@ make all
 # Main DAQ application
 ./acquire -p <#events to average the rate> -n <number of total event> -f <output_raw_file> 
 
-Modules debugged in this version are V1718, V1742
+Modules debugged in this version are V1718, V1742, DT5751
