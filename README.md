@@ -4,8 +4,10 @@ VMEDAQ V0.1
 Applications to read and support DAQ using VME and CAEN V1718 bus controller
 
 Dependencies:
-a) CAEN V1718 device driver 
-b) CAEN VMELIB
+a) CAENComm-1.2
+b) CAENDigitizer_2.15.0
+c) CAENUSBdrvB-1.5.3
+d) CAENVMELib-2.50
 
 Usage:
 Edit the modules base addresses in modules_config.h 
