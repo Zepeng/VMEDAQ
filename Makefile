@@ -8,9 +8,9 @@
 # daq for the CAEN bridge v1718
 
 
-OBJS = v1718_lib.o vme_bridge.o V1742_lib.o X742CorrectionRoutines.o
+OBJS = v1718_lib.o vme_bridge.o V1742_lib.o DT5751_lib.o X742CorrectionRoutines.o
 
-OBJS_CAENCOMM = X742CorrectionRoutines.o V1742_lib.o 
+OBJS_CAENCOMM = X742CorrectionRoutines.o V1742_lib.o DT5751_lib.o 
 
 BINS = acquire acquire_CAENComm
 
@@ -40,6 +40,9 @@ v1718_lib.o: v1718_lib.c v1718_lib.h
 
 V1742_lib.o: V1742_lib.c V1742_lib.h
 	g++ $(COPTS) -c  V1742_lib.c
+
+DT5751_lib.o: DT5751_lib.c DT5751_lib.h
+	g++ $(COPTS) -c  DT5751_lib.c
 
 vme_bridge.o: vme_bridge.c $(INCLUDE_DIR)/vme_bridge.h 	
 	g++ $(COPTS) -c vme_bridge.c	
