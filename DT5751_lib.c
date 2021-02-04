@@ -326,16 +326,9 @@ int ParseConfigDT(FILE *f_ini)
 
 int init_DT5751(int handle)
 {
-  // connect to DT5751 
-  int dt5751; int err = CAEN_DGTZ_Success;
-  ERROR_CODES ErrCode= ERR_NONE;
-  err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &dt5751);
-  if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
-  if (err) { printf("Can't open DT5751!"); return 1; }
-
   // get board info
   CAEN_DGTZ_BoardInfo_t board;
-  err = CAEN_DGTZ_GetInfo(dt5751, &board);
+  int err = CAEN_DGTZ_GetInfo(handle, &board);
   if (err) { printf("Can't get board info!\n"); 
       return 1; }
   printf("Initialization of DT5751\n");
@@ -344,39 +337,11 @@ int init_DT5751(int handle)
   printf("AMC FPGA Release: %s\n", board.AMC_FirmwareRel);
   
   // calibrate board
-  err = CAEN_DGTZ_Calibrate(dt5751);
+  err = CAEN_DGTZ_Calibrate(handle);
   if (err) { printf("Can't calibrate board!\n"); 
       return 1; }
 
   // load configurations
-  if (err) return 1;
-  else printf("Configuration of DT5751 completed.\n");
-  
-  // global settings
-  uint16_t nEvtBLT=1; // number of events for each block transfer
-  err |= CAEN_DGTZ_Reset(dt5751);
-  err |= CAEN_DGTZ_SetRecordLength(dt5751,WDcfg.ns);
-  err |= CAEN_DGTZ_SetPostTriggerSize(dt5751,WDcfg.post);
-  err |= CAEN_DGTZ_SetMaxNumEventsBLT(dt5751,nEvtBLT);
-  err |= CAEN_DGTZ_SetAcquisitionMode(dt5751,CAEN_DGTZ_SW_CONTROLLED);
-  err |= CAEN_DGTZ_SetChannelEnableMask(dt5751,WDcfg.mask);
-  err |= CAEN_DGTZ_SetIOLevel(dt5751,(CAEN_DGTZ_IOLevel_t)WDcfg.exTrgSrc);
-  err |= CAEN_DGTZ_SetExtTriggerInputMode(dt5751,(CAEN_DGTZ_TriggerMode_t)WDcfg.exTrgMod);
-  err |= CAEN_DGTZ_SetSWTriggerMode(dt5751, (CAEN_DGTZ_TriggerMode_t)WDcfg.swTrgMod);
-  // set up trigger coincidence among channels
-  err |= CAEN_DGTZ_WriteRegister(dt5751,0x810c,WDcfg.trgMask);
-  // take the right most 4 bits in WDcfg.trgMask to set trg mode
-  err |= CAEN_DGTZ_SetChannelSelfTrigger(dt5751,(CAEN_DGTZ_TriggerMode_t)WDcfg.chTrgMod,WDcfg.trgMask & 0xf);
-  // configure individual channels
-  for (int ich=0; ich<Nch; ich++) {
-    err |= CAEN_DGTZ_SetChannelDCOffset(dt5751,ich,WDcfg.offset[ich]);
-    err |= CAEN_DGTZ_SetChannelTriggerThreshold(dt5751,ich,WDcfg.thr[ich]);
-    err |= CAEN_DGTZ_SetTriggerPolarity(dt5751,ich,(CAEN_DGTZ_TriggerPolarity_t)(WDcfg.polarity>>ich&1));
-  }
-  if (err) { printf("Board configure error: %d\n", err); 
-      return 1; }
-  sleep(1); // wait till baseline get stable
-  
   FILE *f_ini;
 
   
@@ -393,12 +358,40 @@ int init_DT5751(int handle)
   f_ini = fopen(ConfigFileName, "r");
 
   if (f_ini == NULL ) {
-    ErrCode = ERR_CONF_FILE_NOT_FOUND;
-    return ErrCode;
+    err = ERR_CONF_FILE_NOT_FOUND;
+    return err;
   }
 
-  ParseConfigDT(f_ini);
+  err = ParseConfigDT(f_ini);
   fclose(f_ini);
+  
+  if (err) return 1;
+  else printf("Configuration of DT5751 completed.\n");
+  
+  // global settings
+  uint16_t nEvtBLT=1; // number of events for each block transfer
+  err |= CAEN_DGTZ_Reset(handle);
+  err |= CAEN_DGTZ_SetRecordLength(handle,WDcfg.ns);
+  err |= CAEN_DGTZ_SetPostTriggerSize(handle,WDcfg.post);
+  err |= CAEN_DGTZ_SetMaxNumEventsBLT(handle,nEvtBLT);
+  err |= CAEN_DGTZ_SetAcquisitionMode(handle,CAEN_DGTZ_SW_CONTROLLED);
+  err |= CAEN_DGTZ_SetChannelEnableMask(handle,WDcfg.mask);
+  err |= CAEN_DGTZ_SetIOLevel(handle,(CAEN_DGTZ_IOLevel_t)WDcfg.exTrgSrc);
+  err |= CAEN_DGTZ_SetExtTriggerInputMode(handle,(CAEN_DGTZ_TriggerMode_t)WDcfg.exTrgMod);
+  err |= CAEN_DGTZ_SetSWTriggerMode(handle, (CAEN_DGTZ_TriggerMode_t)WDcfg.swTrgMod);
+  // set up trigger coincidence among channels
+  err |= CAEN_DGTZ_WriteRegister(handle,0x810c,WDcfg.trgMask);
+  // take the right most 4 bits in WDcfg.trgMask to set trg mode
+  err |= CAEN_DGTZ_SetChannelSelfTrigger(handle,(CAEN_DGTZ_TriggerMode_t)WDcfg.chTrgMod,WDcfg.trgMask & 0xf);
+  // configure individual channels
+  for (int ich=0; ich<Nch; ich++) {
+    err |= CAEN_DGTZ_SetChannelDCOffset(handle,ich,WDcfg.offset[ich]);
+    err |= CAEN_DGTZ_SetChannelTriggerThreshold(handle,ich,WDcfg.thr[ich]);
+    err |= CAEN_DGTZ_SetTriggerPolarity(handle,ich,(CAEN_DGTZ_TriggerPolarity_t)(WDcfg.polarity>>ich&1));
+  }
+  if (err) { printf("Board configure error: %d\n", err); 
+      return 1; }
+  sleep(1); // wait till baseline get stable
   
   return 0;
 }
