@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   int handleV1742;
 
   /* Bridge VME initialization */
-  /*int ret = 1-CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB,0,0,V1742_0_BA,&handleV1742);
+  int ret = 1-CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB,0,0,V1742_0_BA,&handleV1742);
       
   //hack to get VME Handle (normally this handle is 0, can be also hardcoded...)
   CAEN_DGTZ_BoardInfo_t myBoardInfo;
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
   {
       printf("Error initializing V1742... STOP!\n");
       return(1);
-  }*/
+  }
 
   // connect to DT5751 
   int dt5751; int err = CAEN_DGTZ_Success;
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
   if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
   status_init *=(1-init_DT5751(dt5751));
   vector<DT5751_Event_t> my_dig5751_OD;
-  daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD, true);
+  //daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD, false);
   
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   
@@ -206,6 +206,7 @@ int main(int argc, char** argv)
 	      printf("\nError reading DIGI 1742... STOP!\n");
 	      return(1);
 	    }
+      daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD, false);
 
 	}
 	

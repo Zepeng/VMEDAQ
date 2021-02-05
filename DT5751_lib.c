@@ -471,13 +471,6 @@ int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& e
       err = CAEN_DGTZ_GetEventInfo(handle,dt5751_buffer,bsize,i,&info,&rawEvt);
       err |= CAEN_DGTZ_DecodeEvent(handle, rawEvt, (void**)&Event16);
       events.push_back(DT5751_Event_t(EventInfo,*Event16));
-      for(int ich=0; ich < Nch; ich++)
-      {
-          for(int ns = 0; ns < Event16->ChSize[ich]; ns++)
-              printf("%d ", Event16->DataChannel[ich][ns]);
-          printf("%d\n", ich);
-      }
-      //printf("Channel Size:%d", Event16->ChSize[ich]);
     }
   }
 
