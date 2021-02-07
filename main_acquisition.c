@@ -106,7 +106,7 @@ int main(int argc, char** argv)
   // connect to V1751 
   int dt5751; int err = CAEN_DGTZ_Success;
   err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &dt5751);
-  if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
+  if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, V1751_0_BA, &dt5751);
   status_init *=(1-init_V1751(dt5751));
   vector<V1751_Event_t> my_dig5751_OD;
   
