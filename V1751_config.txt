@@ -32,7 +32,7 @@ coincidence_level 0
 # or 1024 to 65535 (16-bit DAC counts)
 channel_DC_offset 50
 # Trigger threshold is from 0 to 1023
-channel_trigger_threshold 940
+#channel_trigger_threshold 940
 # trigger polarity (default: negative)
 #channel_trigger_polarity negative
 # no internal trigger is enabled for any channel (default)

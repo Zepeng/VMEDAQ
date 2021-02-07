@@ -17,7 +17,7 @@
 #          PCI 0 0 0    Desktop/NIM/VME through CONET (optical link)
 #          PCI 0 0 BA   VME digitizer through V2718 (BA = BaseAddress of the VME board, 32 bit hex)
 #OPEN USB 0 0
-OPEN USB 1 AAAA0000
+OPEN USB 1 AAA00000
 #OPEN PCI 0 0 0
 #OPEN PCI 0 0 32100000
 

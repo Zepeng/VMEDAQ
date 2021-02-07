@@ -409,7 +409,7 @@ int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& eve
 
   CAEN_DGTZ_EventInfo_t       EventInfo;
   
-  char *dt5751_buffer=NULL;
+  char *v1751_buffer=NULL;
   
   uint32_t AllocatedSize;
 
@@ -428,7 +428,7 @@ int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& eve
 
   /* printf("allocated event %d\n",ret); */
 
-  ret = CAEN_DGTZ_MallocReadoutBuffer(handle, &dt5751_buffer, &AllocatedSize); /* WARNING: This malloc must be done after the digitizer programming */
+  ret = CAEN_DGTZ_MallocReadoutBuffer(handle, &v1751_buffer, &AllocatedSize); /* WARNING: This malloc must be done after the digitizer programming */
   if (ret) { printf("Can't allocate memory! Quit.\n"); return ret; }
   ret = CAEN_DGTZ_AllocateEvent(handle, (void**)&Event16);
   /* printf("malloc %d %d\n",AllocatedSize,ret); */
@@ -446,9 +446,9 @@ int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& eve
       ErrCode = ERR_INTERRUPT;
       return ErrCode;
   }
-  printf("nevents:%d Number of events%d\n", nevents, NumEvents);
+  //printf("nevents:%d Number of events%d\n", nevents, NumEvents);
   // output loop
-  int nEvtTot=0, nNeeded = 10, nEvtIn5sec=0; uint32_t nEvtOnBoard;
+  int nEvtTot=0, nNeeded = 1, nEvtIn5sec=0; uint32_t nEvtOnBoard;
   uint32_t bsize, fsize=0;
   while (nEvtTot<nNeeded ) {
     if (WDcfg.swTrgMod!=CAEN_DGTZ_TRGMODE_DISABLED)
@@ -457,25 +457,25 @@ int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& eve
 
     // read data from board
     CAEN_DGTZ_ReadMode_t mode=CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT;
-    int err = CAEN_DGTZ_ReadData(handle,mode,dt5751_buffer,&bsize);
+    int err = CAEN_DGTZ_ReadData(handle,mode,v1751_buffer,&bsize);
     if (err) { printf("Can't read data from board! Abort.\n"); break; }
     fsize += bsize;
 
     // write data to file
-    err = CAEN_DGTZ_GetNumEvents(handle,dt5751_buffer,bsize,&nEvtOnBoard);
-    printf("nEvtOnBoard: %d, err: %d\n", nEvtOnBoard, err); 
-    if (err) { printf("nEvtOnBoard: %d, err: %d\n", nEvtOnBoard, err); break; }
+    err = CAEN_DGTZ_GetNumEvents(handle,v1751_buffer,bsize,&nEvtOnBoard);
+    if (err) {printf("nEvtOnBoard: %d, err: %d V1751\n", nEvtOnBoard, err); break; }
     for (i=0; i<nEvtOnBoard; i++) {
       CAEN_DGTZ_EventInfo_t info; char *rawEvt = NULL;
-      err = CAEN_DGTZ_GetEventInfo(handle,dt5751_buffer,bsize,i,&info,&rawEvt);
+      err = CAEN_DGTZ_GetEventInfo(handle,v1751_buffer,bsize,i,&info,&rawEvt);
       err |= CAEN_DGTZ_DecodeEvent(handle, rawEvt, (void**)&Event16);
       events.push_back(V1751_Event_t(EventInfo,*Event16));
+      nEvtTot+=1;
     }
   }
 
       
   /* //Freeing V1751 memory  after read */
-  free(dt5751_buffer);
+  free(v1751_buffer);
   delete(Event16);
 
   return 0;
@@ -490,7 +490,7 @@ int stop_V1751(int handle)
   return 0;
 }
 
-int writeEventToOutputBuffer_V1751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event)
+int writeEventToOutputBuffer_V1751(std::vector<uint16_t> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event)
 {
   int gr,ch;
 
@@ -514,17 +514,14 @@ int writeEventToOutputBuffer_V1751(std::vector<float> *eventBuffer, CAEN_DGTZ_Ev
   //               ...   = [          .....             ]
 
   eventBuffer->clear();
-  eventBuffer->resize(5);
-  (*eventBuffer)[0]=0xA0000005; 
-  (*eventBuffer)[1]=((EventInfo->BoardId)<<26)+EventInfo->Pattern;
-  (*eventBuffer)[2]=0;
-  (*eventBuffer)[3]=EventInfo->EventCounter;
-  (*eventBuffer)[4]=EventInfo->TriggerTimeTag;
+  eventBuffer->resize(2);
+  (*eventBuffer)[0]=EventInfo->EventCounter;
+  (*eventBuffer)[1]=EventInfo->TriggerTimeTag;
 
-  printf("EVENT 5751 %d %d \n",EventInfo->EventCounter,EventInfo->TriggerTimeTag);
-  for(ch=0; ch<Nch; ch++) {
+  printf("EVENT 1751 %d %d \n",EventInfo->EventCounter,EventInfo->TriggerTimeTag);
+  for(ch=0; ch<1; ch++) {
 	int Size = Event->ChSize[ch];
-	if (Size <= 0) {
+    if (Size <= 0) {
 	  continue;
 	}
 
@@ -538,15 +535,15 @@ int writeEventToOutputBuffer_V1751(std::vector<float> *eventBuffer, CAEN_DGTZ_Ev
 
 	//Allocating necessary space for this channel
 	eventBuffer->resize(eventBuffer->size() + 2 + Size);
-	memcpy(&((*eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof(float));
+	memcpy(&((*eventBuffer)[start_ptr]), &ChHeader[0], 2 * sizeof(uint16_t));
 
 	//Beware the datas are float (because they are corrected...) but copying them here bit by bit. Should remember this for reading them out
-    memcpy(&((*eventBuffer)[start_ptr+2]), Event->DataChannel[ch], Size * sizeof(float));
+    memcpy(&((*eventBuffer)[start_ptr+2]), Event->DataChannel[ch], Size * sizeof(uint16_t));
 
 	//Update event size and #channels
 	(*eventBuffer)[0]+=(Size+2);
 	(*eventBuffer)[2]++;
-      }
+  }
   return 0;
 }
 

@@ -7,7 +7,7 @@
 #include <CAENDigitizer.h>
 
 #ifndef Nch
-#define Nch 4 ///< total number of channels
+#define Nch 3 ///< total number of channels
 #endif
 
 #ifndef VERSION
@@ -63,7 +63,7 @@ V1751_Event_t(const CAEN_DGTZ_EventInfo_t& ei, const CAEN_DGTZ_UINT16_EVENT_t& e
 
 int init_V1751(int handle);
 int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& events, bool swtrigger);
-int writeEventToOutputBuffer_V1751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event);
+int writeEventToOutputBuffer_V1751(std::vector<uint16_t> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event);
 int stop_V1751(int handle);
 
 #endif

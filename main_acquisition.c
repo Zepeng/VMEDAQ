@@ -8,7 +8,7 @@
 //I'd like to get rid of those!!!
 #include "my_vmeio.h"
 #include "my_vmeint.h"
-
+#include "modules_config.h"
 //Bridge!
 #include "CAENComm.h"
 #include "vme_bridge.h"
@@ -104,11 +104,10 @@ int main(int argc, char** argv)
   }
 
   // connect to V1751 
-  int dt5751; int err = CAEN_DGTZ_Success;
-  err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &dt5751);
-  if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, V1751_0_BA, &dt5751);
-  status_init *=(1-init_V1751(dt5751));
-  vector<V1751_Event_t> my_dig5751_OD;
+  int v1751; int err = CAEN_DGTZ_Success;
+  err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &v1751);
+  if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, V1751_0_BA, &v1751);
+  status_init *=(1-init_V1751(v1751));
   
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   
@@ -121,9 +120,10 @@ int main(int argc, char** argv)
   vector<int> my_adc_OD;
   vector<uint32_t> my_scal_OD, my_scal_WD, tmpscaD;
   vector<V1742_Event_t> my_dig1742_OD;
+  vector<V1751_Event_t> my_dig1751_OD;
   vector<int> my_header_OD;
   vector<float> my_V1742_Event;
-  vector<float> my_V1751_Event;
+  vector<uint16_t> my_V1751_Event;
 
   myOut.open(f_value,ios::out);
 
@@ -175,13 +175,21 @@ int main(int argc, char** argv)
 	//read the Digitizer 1742
 	if(DIG1742) {
 	  my_dig1742_OD.clear();
-	  daq_status = 1 - read_V1742(handleV1742,hm_evt_read,my_dig1742_OD);
+      gettimeofday(&tv, NULL);
+      printf("Time: %d\n", gettimestamp(&tv));
+      daq_status = 1 - read_V1751(v1751,1,my_dig1751_OD, false);
+	  //daq_status = 1 - read_V1742(handleV1742,hm_evt_read,my_dig1742_OD);
 	  if (daq_status != 1)
 	    {
 	      printf("\nError reading DIGI 1742... STOP!\n");
 	      return(1);
 	    }
-      daq_status = 1 - read_V1751(dt5751,1,my_dig5751_OD, false);
+      gettimeofday(&tv2, NULL);
+      printf("V1742 Elapsed Time: %d\n", timevaldiff(&tv, &tv1));
+      //daq_status = 1 - read_V1751(v1751,1,my_dig1751_OD, false);
+	  daq_status = 1 - read_V1742(handleV1742,hm_evt_read,my_dig1742_OD);
+      gettimeofday(&tv3, NULL);
+      printf("V1751 Elapsed Time: %d\n", timevaldiff(&tv1, &tv2));
 
 	}
 	
@@ -196,19 +204,22 @@ int main(int argc, char** argv)
 	  
 	  int eventSize_dig1742=0;
 	  if (DIG1742)
-	    {
-	      if (ie<(int)my_dig1742_OD.size())
-	  	{
-	  	  daq_status *= 1-writeEventToOutputBuffer_V1742(&my_V1742_Event,&((my_dig1742_OD[ie]).eventInfo),&((my_dig1742_OD[ie]).event));
-	  	  if (my_V1742_Event.size()>0)
-	  	    {
-	  	      eventSize_dig1742=my_V1742_Event.size();
-	  	    }
-	  	}
+      {
+          printf("1742 size:%d, 1751 size: %d", my_dig1742_OD.size(), my_dig1751_OD.size());
+          if (ie<(int)my_dig1742_OD.size())
+          {
+              daq_status *= 1-writeEventToOutputBuffer_V1742(&my_V1742_Event,&((my_dig1742_OD[ie]).eventInfo),&((my_dig1742_OD[ie]).event));
+              if (my_V1742_Event.size()>0)
+              {
+                  eventSize_dig1742=my_V1742_Event.size();
+              }
+          }
 	      else
-	  	cout<<"V1742::ERROR::DATA ARE CORRUPTED" <<endl;
-	      //myOE.push_back(eventSize_dig1742);
-	    }
+              cout<<"V1742::ERROR::DATA ARE CORRUPTED" <<endl;
+          if(ie < (int) my_dig1751_OD.size())
+              daq_status *= 1-writeEventToOutputBuffer_V1751(&my_V1751_Event,&((my_dig1751_OD[ie]).eventInfo),&((my_dig1751_OD[ie]).event));
+          //myOE.push_back(eventSize_dig1742);
+        }
 
 	  
 	  if(headWords/hm_evt_read != 3) { 
@@ -223,6 +234,7 @@ int main(int argc, char** argv)
 	  
 	  if(DIG1742) {
 	    myOE.insert(myOE.end(),my_V1742_Event.begin(),my_V1742_Event.end());
+	    myOE.insert(myOE.end(),my_V1751_Event.begin(),my_V1751_Event.end());
 	  }
 
 	  //ADD the header info
@@ -317,8 +329,8 @@ unsigned short writeFastEvent(vector<int> wriD, ofstream *Fouf)
   }
   *Fouf << "\n";
 
-  std::string fname = "test.h5";
-  hid_t file = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  //std::string fname = "test.h5";
+  //hid_t file = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   //H5File file(fname, H5F_ACC_TRUNC);
   //Fouf->write((char *) &size,sizeof(int));
   //Fouf->write((char *) myD,wriD.size()*sizeof(int));
