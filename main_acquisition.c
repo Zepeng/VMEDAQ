@@ -18,7 +18,7 @@
 #include "main_acquisition.h" 
 #include "v1718_lib.h"
 #include "V1742_lib.h"
-#include "DT5751_lib.h"
+#include "V1751_lib.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -91,8 +91,7 @@ int main(int argc, char** argv)
 	  printf("VME Initialization error ... STOP!\n");
 	  return(1);
   }
-  //CAENVME_SystemReset(BHandle);
-  printf("Opened V1742 and initialized VME crate\n",ret);
+  printf("Opened V1742 and initialized VME crate\n");
   // Modules initialization 
   status_init=1;
 
@@ -104,30 +103,27 @@ int main(int argc, char** argv)
       return(1);
   }
 
-  // connect to DT5751 
+  // connect to V1751 
   int dt5751; int err = CAEN_DGTZ_Success;
   err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_OpticalLink, 0, 0, 0, &dt5751);
   if (err) err = CAEN_DGTZ_OpenDigitizer(CAEN_DGTZ_USB, 0, 0, 0, &dt5751);
-  status_init *=(1-init_DT5751(dt5751));
-  vector<DT5751_Event_t> my_dig5751_OD;
-  //daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD, false);
+  status_init *=(1-init_V1751(dt5751));
+  vector<V1751_Event_t> my_dig5751_OD;
   
   printf("================================================\nVME and modules initialization completed\n\nStart data acquisition\n================================================\n");
   
 
   /* Output file initialization  */
-  int start, end;
   int start_hea, end_hea;
-  int adcWords, headWords;
-  int scalWords;
-  bool trigger = false; 
+  int headWords;
 
   vector<int> myOE;
   vector<int> my_adc_OD;
   vector<uint32_t> my_scal_OD, my_scal_WD, tmpscaD;
   vector<V1742_Event_t> my_dig1742_OD;
   vector<int> my_header_OD;
-  vector<float> my_Dig_Event;
+  vector<float> my_V1742_Event;
+  vector<float> my_V1751_Event;
 
   myOut.open(f_value,ios::out);
 
@@ -135,14 +131,8 @@ int main(int argc, char** argv)
   int in_evt_read = 1; 
   int hm_evt_read; 
 
-  bool read_boards,read_scaler;
-
-  bool hiScale = true;
-
   //Clear of header info
   my_header_OD.clear();
-
-  int nreadout=0;
 
   /*  Start counting: check that the scaler's channels are empty */
   status_init *= reset_nim_scaler_1718(BHandle) ;
@@ -163,12 +153,9 @@ int main(int argc, char** argv)
     {
       daq_status = 1;
       hm_evt_read = in_evt_read;
-      //      hm_evt_read = 1;
-      hiScale = true;
-      trigger = false;
 
       //nasty... 
-      if(nevent<in_evt_read) {hm_evt_read = 1; hiScale = false;}
+      if(nevent<in_evt_read) {hm_evt_read = 1; }
 
       /* Attach a TIMESPAMP to the event */
       gettimeofday(&tv, NULL);
@@ -183,20 +170,8 @@ int main(int argc, char** argv)
 
       headWords = my_header_OD.size();
 
-      read_boards = false;
-      read_scaler = false;
       nevent++;
 
-      if(!(nevent%hm_evt_read)) {
-	if((nevent != hm_evt_read) || !hiScale)
-	  read_boards = true;
-      }
-
- 
-
-      if(read_boards) {
-	nreadout++;
-	
 	//read the Digitizer 1742
 	if(DIG1742) {
 	  my_dig1742_OD.clear();
@@ -206,13 +181,11 @@ int main(int argc, char** argv)
 	      printf("\nError reading DIGI 1742... STOP!\n");
 	      return(1);
 	    }
-      daq_status = 1 - read_DT5751(dt5751,1,my_dig5751_OD, false);
+      daq_status = 1 - read_V1751(dt5751,1,my_dig5751_OD, false);
 
 	}
 	
 	//HEADER with timing will be always present
-	start = 0;
-
 	start_hea = 0;
 
 	for(int ie=0; ie<hm_evt_read; ie++) {
@@ -226,10 +199,10 @@ int main(int argc, char** argv)
 	    {
 	      if (ie<(int)my_dig1742_OD.size())
 	  	{
-	  	  daq_status *= 1-writeEventToOutputBuffer_V1742(&my_Dig_Event,&((my_dig1742_OD[ie]).eventInfo),&((my_dig1742_OD[ie]).event));
-	  	  if (my_Dig_Event.size()>0)
+	  	  daq_status *= 1-writeEventToOutputBuffer_V1742(&my_V1742_Event,&((my_dig1742_OD[ie]).eventInfo),&((my_dig1742_OD[ie]).event));
+	  	  if (my_V1742_Event.size()>0)
 	  	    {
-	  	      eventSize_dig1742=my_Dig_Event.size();
+	  	      eventSize_dig1742=my_V1742_Event.size();
 	  	    }
 	  	}
 	      else
@@ -249,7 +222,7 @@ int main(int argc, char** argv)
 	  
 	  
 	  if(DIG1742) {
-	    myOE.insert(myOE.end(),my_Dig_Event.begin(),my_Dig_Event.end());
+	    myOE.insert(myOE.end(),my_V1742_Event.begin(),my_V1742_Event.end());
 	  }
 
 	  //ADD the header info
@@ -265,7 +238,6 @@ int main(int argc, char** argv)
 
 	//Clears the HEADER after writing the EVENT
 	my_header_OD.clear();
-      }
       
       /* if(daq_status!=1){ */
       /* 	printf("\nError writing the Event... STOP!\n"); */
@@ -273,7 +245,6 @@ int main(int argc, char** argv)
       /* } */
     
 
-      int pause_counter=0;
       if((nevent-(p_value*((int)(nevent/p_value))))==0) 
 	{
 	  delta_micro_seconds = timevaldiff(&tv2,&tv);

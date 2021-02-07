@@ -1,5 +1,5 @@
-#ifndef DT5751_H
-#define DT5751_H
+#ifndef V1751_H
+#define V1751_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -25,7 +25,7 @@ typedef struct {
 /**
  * Run configurations.
  * It is 32 x 10 bits long and is saved as the first and last events of a run.
- * RUN_DT57511_t::trgMask is explained in DT5751 User's Manual:
+ * RUN_V17511_t::trgMask is explained in V1751 User's Manual:
  * http://www.caen.it/servlet/checkCaenManualFile?Id=11299
  */
 typedef struct {
@@ -46,25 +46,25 @@ typedef struct {
    unsigned reserved:10;
    uint16_t thr[Nch];   ///< 0 ~ 2^10-1
    uint16_t offset[Nch];///< 16-bit DC offset
-} RUN_DT5751_t;
+} RUN_V1751_t;
 
 void SaveCurrentTime(); ///< Save OS time to \param cfg.
 
-typedef struct DT5751_Event_t
+typedef struct V1751_Event_t
 {
-DT5751_Event_t(const CAEN_DGTZ_EventInfo_t& ei, const CAEN_DGTZ_UINT16_EVENT_t& e): 
+V1751_Event_t(const CAEN_DGTZ_EventInfo_t& ei, const CAEN_DGTZ_UINT16_EVENT_t& e): 
   eventInfo(ei), 
     event(e) 
   {
   };
   CAEN_DGTZ_EventInfo_t eventInfo;
   CAEN_DGTZ_UINT16_EVENT_t event;
-} DT5751_Event_t;
+} V1751_Event_t;
 
-int init_DT5751(int handle);
-int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events, bool swtrigger);
-int writeEventToOutputBuffer_DT5751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event);
-int stop_DT5751(int handle);
+int init_V1751(int handle);
+int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& events, bool swtrigger);
+int writeEventToOutputBuffer_V1751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event);
+int stop_V1751(int handle);
 
 #endif
 

@@ -4,9 +4,9 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <CAENDigitizerType.h>
-#include "DT5751_lib.h"
+#include "V1751_lib.h"
 
-#define DEFAULT_CONFIG_FILE  "/home/nexo/work/DAQ/VMEDAQ/DT5751_config.txt"
+#define DEFAULT_CONFIG_FILE  "/home/nexo/work/DAQ/VMEDAQ/V1751_config.txt"
 
 typedef enum  {
   ERR_NONE= 0,
@@ -29,7 +29,7 @@ typedef enum  {
   ERR_DUMMY_LAST,
 } ERROR_CODES;
 
-static RUN_DT5751_t WDcfg;
+static RUN_V1751_t WDcfg;
 
 void SaveCurrentTime()
 {
@@ -324,14 +324,14 @@ int ParseConfigDT(FILE *f_ini)
   return 0;
 }
 
-int init_DT5751(int handle)
+int init_V1751(int handle)
 {
   // get board info
   CAEN_DGTZ_BoardInfo_t board;
   int err = CAEN_DGTZ_GetInfo(handle, &board);
   if (err) { printf("Can't get board info!\n"); 
       return 1; }
-  printf("Initialization of DT5751\n");
+  printf("Initialization of V1751\n");
   printf("Connected to %s\n", board.ModelName);
   printf("ROC FPGA Release: %s\n", board.ROC_FirmwareRel);
   printf("AMC FPGA Release: %s\n", board.AMC_FirmwareRel);
@@ -346,7 +346,7 @@ int init_DT5751(int handle)
 
   
   printf("**************************************************************\n");
-  printf("                        Initialise DT5751\n");
+  printf("                        Initialise V1751\n");
   printf("**************************************************************\n");
   
   /* *************************************************************************************** */
@@ -366,7 +366,7 @@ int init_DT5751(int handle)
   fclose(f_ini);
   
   if (err) return 1;
-  else printf("Configuration of DT5751 completed.\n");
+  else printf("Configuration of V1751 completed.\n");
   
   // global settings
   uint16_t nEvtBLT=1; // number of events for each block transfer
@@ -396,7 +396,7 @@ int init_DT5751(int handle)
   return 0;
 }
 
-int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& events, bool swtrigger)
+int read_V1751(int handle, unsigned int nevents, std::vector<V1751_Event_t>& events, bool swtrigger)
 {
   /* printf("Start read\n"); */
   CAEN_DGTZ_ErrorCode ret=CAEN_DGTZ_Success;
@@ -469,12 +469,12 @@ int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& e
       CAEN_DGTZ_EventInfo_t info; char *rawEvt = NULL;
       err = CAEN_DGTZ_GetEventInfo(handle,dt5751_buffer,bsize,i,&info,&rawEvt);
       err |= CAEN_DGTZ_DecodeEvent(handle, rawEvt, (void**)&Event16);
-      events.push_back(DT5751_Event_t(EventInfo,*Event16));
+      events.push_back(V1751_Event_t(EventInfo,*Event16));
     }
   }
 
       
-  /* //Freeing DT5751 memory  after read */
+  /* //Freeing V1751 memory  after read */
   free(dt5751_buffer);
   delete(Event16);
 
@@ -482,7 +482,7 @@ int read_DT5751(int handle, unsigned int nevents, std::vector<DT5751_Event_t>& e
   
 }
 
-int stop_DT5751(int handle)
+int stop_V1751(int handle)
 {
   /* stop the acquisition */
   CAEN_DGTZ_SWStopAcquisition(handle);
@@ -490,12 +490,12 @@ int stop_DT5751(int handle)
   return 0;
 }
 
-int writeEventToOutputBuffer_DT5751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event)
+int writeEventToOutputBuffer_V1751(std::vector<float> *eventBuffer, CAEN_DGTZ_EventInfo_t *EventInfo, CAEN_DGTZ_UINT16_EVENT_t *Event)
 {
   int gr,ch;
 
   //          ====================================================
-  //          |           DT5751 Raw Event Data Format            |
+  //          |           V1751 Raw Event Data Format            |
   //          ====================================================
 
   //                       31  -  28 27  -  16 15   -   0
