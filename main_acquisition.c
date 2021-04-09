@@ -24,6 +24,7 @@
 #include <vector>
 #include "hdf5.h"
 #include "H5public.h"
+#include "H5Cpp.h"
 
 #define update_scaler 0
 using namespace std;
@@ -329,7 +330,8 @@ unsigned short writeFastEvent(vector<int> wriD, ofstream *Fouf)
   }
   *Fouf << "\n";
 
-  //std::string fname = "test.h5";
+  std::string fname = "test.h5";
+  H5::H5File *file = new H5::H5File(fname, H5F_ACC_TRUNC);
   //hid_t file = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   //H5File file(fname, H5F_ACC_TRUNC);
   //Fouf->write((char *) &size,sizeof(int));
