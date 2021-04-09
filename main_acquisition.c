@@ -135,12 +135,12 @@ int main(int argc, char** argv)
   my_header_OD.clear();
 
   /*  Start counting: check that the scaler's channels are empty */
-  status_init *= reset_nim_scaler_1718(BHandle) ;
+  /*status_init *= reset_nim_scaler_1718(BHandle) ;
   if (status_init != 1) 
     {
       printf("Error resetting the V1718... STOP!\n");
       return(1);
-    }
+    }*/
 
   //Get the start time!
   gettimeofday(&tv1, NULL);

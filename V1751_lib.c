@@ -6,7 +6,7 @@
 #include <CAENDigitizerType.h>
 #include "V1751_lib.h"
 
-#define DEFAULT_CONFIG_FILE  "/home/nexo/work/DAQ/VMEDAQ/V1751_config.txt"
+#define DEFAULT_CONFIG_FILE  "./V1751_config.txt"
 
 typedef enum  {
   ERR_NONE= 0,
@@ -295,7 +295,7 @@ int ParseConfigDT(FILE *f_ini)
 	printf("%s: invalid option to enable channel recording\n", option);
 	return 1;
       }
-      for (i=Nch; i-->0;) printf("%d",WDcfg.mask>>i&1); printf("\n");
+      for (i=Nch; i-->0;) printf("Enable V1751 Ch %d %d",i, WDcfg.mask>>i&1); printf("\n");
       continue;
     }
 
@@ -337,9 +337,10 @@ int init_V1751(int handle)
   printf("AMC FPGA Release: %s\n", board.AMC_FirmwareRel);
   
   // calibrate board
-  err = CAEN_DGTZ_Calibrate(handle);
+  /*err = CAEN_DGTZ_Calibrate(handle);
   if (err) { printf("Can't calibrate board!\n"); 
       return 1; }
+      */
 
   // load configurations
   FILE *f_ini;
@@ -519,8 +520,9 @@ int writeEventToOutputBuffer_V1751(std::vector<uint16_t> *eventBuffer, CAEN_DGTZ
   (*eventBuffer)[1]=EventInfo->TriggerTimeTag;
 
   printf("EVENT 1751 %d %d \n",EventInfo->EventCounter,EventInfo->TriggerTimeTag);
-  for(ch=0; ch<1; ch++) {
-	int Size = Event->ChSize[ch];
+  for(ch=0; ch<Nch; ch++) {
+	  printf("Channel %d Size %d", ch, Event->ChSize[ch]);
+	  int Size = Event->ChSize[ch];
     if (Size <= 0) {
 	  continue;
 	}

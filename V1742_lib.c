@@ -12,7 +12,7 @@
 
 #include "X742CorrectionRoutines.h"
 
-#define DEFAULT_CONFIG_FILE  "/home/nexo/work/DAQ/VMEDAQ/V1742_config.txt"
+#define DEFAULT_CONFIG_FILE  "./V1742_config.txt"
 
 #define MAX_CH  64          /* max. number of channels */
 #define MAX_SET 8           /* max. number of independent settings */

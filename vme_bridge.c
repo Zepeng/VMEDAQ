@@ -1,4 +1,5 @@
 #include "vme_bridge.h"
+#include "stdio.h"
 
 #include <unistd.h>
 #include "CAENVMElib.h"

@@ -16,12 +16,12 @@ BINS = acquire acquire_CAENComm
 
 INCLUDE_DIR = .
 
-COPTS = -g -Wall -DLINUX -fPIC -I$(INCLUDE_DIR) -I/usr/include/hdf5/serial/ -lhdf5_cpp -lhdf5_serial 
+COPTS = -g -Wall -DLINUX -fPIC -I$(INCLUDE_DIR) -I/usr/local/hdf5/include
 
 all: $(BINS)
 
 acquire: $(OBJS) main_acquisition.o 
-	g++ -g -DLINUX -o acquire $(OBJS) -lncurses -lm -lCAENVME  -lCAENComm -lCAENDigitizer main_acquisition.o -lhdf5
+	g++ -g -DLINUX -o acquire $(OBJS) -lncurses -lm -lCAENVME  -lCAENComm -lCAENDigitizer main_acquisition.o -L/usr/local/hdf5/lib -lhdf5
 
 acquire_CAENComm: $(OBJS_CAENCOMM) testDigitizer.o
 	g++ -g -DLINUX -o acquire_CAENComm $(OBJS_CAENCOMM) -lncurses -lm -lCAENVME -lCAENComm -lCAENDigitizer testDigitizer.o
