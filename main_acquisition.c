@@ -365,8 +365,8 @@ unsigned short writeFastEvent(int event_id, vector<int> V1751, vector<int> V1742
   H5::DataSpace dataspace(RANK, dims);
   H5::DataSet ds1751 = group.createDataSet("V1751", H5::PredType::NATIVE_INT, dataspace);
   ds1751.write(&V1751[0], H5::PredType::NATIVE_INT);
-  dims[0] = 36;
-  dims[1] = V1742.size()/36;
+  dims[0] = 32;
+  dims[1] = V1742.size()/32;
   H5::DataSpace dataspace2(RANK, dims);
   H5::DataSet ds1742 = group.createDataSet("V1742", H5::PredType::NATIVE_INT, dataspace2);
   ds1742.write(&V1742[0], H5::PredType::NATIVE_INT);
