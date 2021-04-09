@@ -1,5 +1,6 @@
 #include <vector>
 #include <fstream>
+#include "H5Cpp.h"
 
 /* GENERAL SETTING  */
 #define V1718 1
@@ -14,3 +15,4 @@
 short TOTAL_value[EVT_SIZE];
 
 unsigned short writeFastEvent(std::vector<int> wriD, std::ofstream *Fouf);
+unsigned short writeFastEvent(int event_id, std::vector<int> v1751, std::vector<int> v1742, H5::H5File* h5file);

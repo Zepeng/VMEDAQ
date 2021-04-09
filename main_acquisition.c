@@ -24,7 +24,6 @@
 #include <vector>
 #include "hdf5.h"
 #include "H5public.h"
-#include "H5Cpp.h"
 
 #define update_scaler 0
 using namespace std;
@@ -118,6 +117,8 @@ int main(int argc, char** argv)
   int headWords;
 
   vector<int> myOE;
+  vector<int> event_v1751;
+  vector<int> event_v1742;
   vector<int> my_adc_OD;
   vector<uint32_t> my_scal_OD, my_scal_WD, tmpscaD;
   vector<V1742_Event_t> my_dig1742_OD;
@@ -127,6 +128,9 @@ int main(int argc, char** argv)
   vector<uint16_t> my_V1751_Event;
 
   myOut.open(f_value,ios::out);
+  
+  std::string fname = "test.h5";
+  H5::H5File *h5file = new H5::H5File(fname, H5F_ACC_TRUNC);
 
   
   int in_evt_read = 1; 
@@ -235,7 +239,9 @@ int main(int argc, char** argv)
 	  
 	  if(DIG1742) {
 	    myOE.insert(myOE.end(),my_V1742_Event.begin(),my_V1742_Event.end());
+	    event_v1742.insert(event_v1742.end(), my_V1742_Event.begin(),my_V1742_Event.end());
 	    myOE.insert(myOE.end(),my_V1751_Event.begin(),my_V1751_Event.end());
+	    event_v1751.insert(event_v1751.end(), my_V1751_Event.begin(),my_V1751_Event.end());
 	  }
 
 	  //ADD the header info
@@ -246,6 +252,7 @@ int main(int argc, char** argv)
 	  start_hea = end_hea;
 	  
 	  daq_status *= writeFastEvent(myOE,&myOut);
+	  daq_status *= writeFastEvent(nevent, event_v1751, event_v1742,h5file);
 	}
 	
 
@@ -330,12 +337,37 @@ unsigned short writeFastEvent(vector<int> wriD, ofstream *Fouf)
   }
   *Fouf << "\n";
 
-  std::string fname = "test.h5";
-  H5::H5File *file = new H5::H5File(fname, H5F_ACC_TRUNC);
-  //hid_t file = H5Fcreate(fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  //H5File file(fname, H5F_ACC_TRUNC);
-  //Fouf->write((char *) &size,sizeof(int));
-  //Fouf->write((char *) myD,wriD.size()*sizeof(int));
   return (status);
 
+}
+
+// Write FAST event (no decoding)
+unsigned short writeFastEvent(int event_id, vector<int> V1751, vector<int> V1742, H5::H5File* h5file)
+{
+
+  /*
+    Event FORMAT:
+    Evt Size
+    Channel Mask
+    Evt number
+    Trigger time
+    And for the non zero channels
+    N. of ch words (+1, tot charge)
+  */
+  std::string groupname = "event_";
+  groupname.append(std::to_string(event_id));
+  std::cout << groupname << std::endl;
+  H5::Group group(h5file->createGroup(groupname));
+  int RANK = 2;
+  hsize_t dims[RANK];
+  dims[0] = 3;
+  dims[1] = V1751.size()/3;
+  H5::DataSpace dataspace(RANK, dims);
+  H5::DataSet ds1751 = group.createDataSet("V1751", H5::PredType::NATIVE_INT, dataspace);
+  ds1751.write(&V1751[0], H5::PredType::NATIVE_INT);
+  dims[0] = 36;
+  dims[1] = V1742.size()/36;
+  H5::DataSpace dataspace2(RANK, dims);
+  H5::DataSet ds1742 = group.createDataSet("V1742", H5::PredType::NATIVE_INT, dataspace2);
+  ds1742.write(&V1742[0], H5::PredType::NATIVE_INT);
 }
